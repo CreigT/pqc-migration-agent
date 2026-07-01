@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PQC Migration Assessment Engine</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="quantum-field" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Post-Quantum Cryptography</p>
+        <h1>PQC Migration Assessment Engine</h1>
+        <p class="subtitle">Upload a security document and scan for quantum-vulnerable cryptography.</p>
+      </div>
+    </section>
+
+    <section class="glass upload-panel" aria-labelledby="upload-title">
+      <div>
+        <h2 id="upload-title">Document Intake</h2>
+        <p class="muted">PDF text is extracted locally by the backend before any dashboard data appears.</p>
+      </div>
+
+      <form id="analysis-form">
+        <label class="drop-zone" id="drop-zone" for="pdf-file">
+          <input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf">
+          <span class="drop-icon">PDF</span>
+          <strong id="file-label">Drop a PDF here or choose a file</strong>
+          <small>Text-based PDF only</small>
+        </label>
+        <button class="primary-action" type="submit">Run PQC Analysis</button>
+      </form>
+
+      <div class="loading" id="loading" hidden>
+        <div class="loader"></div>
+        <p id="loading-text">Extracting PDF text...</p>
+      </div>
+
+      <div class="error" id="error-box" hidden></div>
+    </section>
+
+    <section class="results" id="results" hidden>
+      <div class="dashboard-grid">
+        <article class="glass gauge-card">
+          <h2>Overall Risk Gauge</h2>
+          <div class="gauge" id="risk-gauge"><span id="risk-score">0</span></div>
+          <p id="risk-label">Low</p>
+        </article>
+
+        <article class="glass gauge-card">
+          <h2>Quantum Readiness Gauge</h2>
+          <div class="gauge readiness" id="readiness-gauge"><span id="readiness-score">0%</span></div>
+          <p>Migration posture</p>
+        </article>
+      </div>
+
+      <div class="summary-grid" id="summary-grid"></div>
+
+      <section class="glass table-panel">
+        <h2>Findings</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Algorithm</th>
+                <th>Occurrences</th>
+                <th>Quantum Risk</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="findings-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="glass recommendations-panel">
+        <h2>Recommendations</h2>
+        <ul id="recommendations"></ul>
+      </section>
+
+      <section class="download-row" aria-label="Download reports">
+        <a class="download-button" id="download-json" href="#">Download JSON</a>
+        <a class="download-button" id="download-markdown" href="#">Download Markdown</a>
+        <a class="download-button" id="download-html" href="#">Download HTML</a>
+      </section>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
