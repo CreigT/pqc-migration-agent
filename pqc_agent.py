@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 
 
 VULNERABLE_FAMILIES = {"RSA", "ECC", "DSA", "DH"}
@@ -67,7 +68,14 @@ NOTES = {
 
 
 def extract_text_from_pdf(pdf_path: Path) -> str:
-    reader = PdfReader(str(pdf_path))
+    try:
+        reader = PdfReader(str(pdf_path))
+    except PdfReadError as exc:
+        raise ValueError("The PDF could not be read. Please upload a valid, unencrypted PDF.") from exc
+
+    if reader.is_encrypted:
+        raise ValueError("Encrypted PDFs are not supported. Please upload an unencrypted text-based PDF.")
+
     pages = []
     for page in reader.pages:
         pages.append(page.extract_text() or "")
@@ -275,9 +283,11 @@ def render_html_report(result: dict[str, Any]) -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PQC Migration Assessment Report</title>
   <style>
-    body {{ margin: 0; padding-bottom: 112px; font-family: Arial, sans-serif; color: #eaf7ff; background: #080b18; }}
+    * {{ box-sizing: border-box; }}
+    body {{ margin: 0; padding-bottom: 112px; font-family: Arial, sans-serif; color: #eaf7ff; background: radial-gradient(circle at 18% 8%, rgba(120,247,255,.13), transparent 25rem), radial-gradient(circle at 88% 0%, rgba(140,108,255,.14), transparent 26rem), #080b18; }}
     main {{ max-width: 1040px; margin: 0 auto; padding: 40px 20px; }}
-    h1, h2 {{ color: #78f7ff; }}
+    h1, h2 {{ color: #78f7ff; letter-spacing: 0; }}
+    h1 {{ margin: 0 0 18px; font-size: clamp(32px, 6vw, 56px); line-height: 1; }}
     .panel {{ border: 1px solid rgba(120, 247, 255, .24); background: rgba(255,255,255,.06); border-radius: 8px; padding: 22px; margin: 18px 0; box-shadow: 0 0 36px rgba(120, 80, 255, .16); }}
     .metrics {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }}
     .metric {{ background: rgba(9, 17, 36, .86); border-left: 3px solid #8c6cff; padding: 16px; }}
@@ -290,7 +300,14 @@ def render_html_report(result: dict[str, Any]) -> str:
     .brand-footer strong {{ color: rgba(120,247,255,.92); }}
     @media print {{
       body {{ padding-bottom: 120px; background: #080b18 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+      main {{ padding: 28px 16px; }}
+      .panel {{ box-shadow: none; break-inside: avoid; }}
       .brand-footer {{ position: fixed; bottom: 0; }}
+    }}
+    @media (max-width: 680px) {{
+      body {{ padding-bottom: 150px; }}
+      main {{ padding: 28px 14px; }}
+      th, td {{ padding: 10px 8px; }}
     }}
   </style>
 </head>

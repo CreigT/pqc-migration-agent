@@ -8,13 +8,13 @@
 </head>
 <body>
   <div class="quantum-field" aria-hidden="true">
-    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><i></i><i></i>
   </div>
 
   <main class="shell">
     <section class="hero">
       <div>
-        <p class="eyebrow">Post-Quantum Cryptography</p>
+        <p class="eyebrow">Version 1.0 | Post-Quantum Cryptography</p>
         <h1>PQC Migration Assessment Engine</h1>
         <p class="subtitle">Upload a security document and scan for quantum-vulnerable cryptography.</p>
       </div>
@@ -29,7 +29,7 @@
       <form id="analysis-form">
         <label class="drop-zone" id="drop-zone" for="pdf-file">
           <input id="pdf-file" name="file" type="file" accept="application/pdf,.pdf">
-          <span class="drop-icon">PDF</span>
+          <span class="drop-icon" aria-hidden="true">PDF</span>
           <strong id="file-label">Drop a PDF here or choose a file</strong>
           <small>Text-based PDF only</small>
         </label>
@@ -41,20 +41,20 @@
         <p id="loading-text">Extracting PDF text...</p>
       </div>
 
-      <div class="error" id="error-box" hidden></div>
+      <div class="error" id="error-box" tabindex="-1" hidden></div>
     </section>
 
     <section class="results" id="results" hidden>
       <div class="dashboard-grid">
         <article class="glass gauge-card">
           <h2>Overall Risk Gauge</h2>
-          <div class="gauge" id="risk-gauge"><span id="risk-score">0</span></div>
-          <p id="risk-label">Low</p>
+          <div class="gauge" id="risk-gauge"><span id="risk-score"></span></div>
+          <p id="risk-label"></p>
         </article>
 
         <article class="glass gauge-card">
           <h2>Quantum Readiness Gauge</h2>
-          <div class="gauge readiness" id="readiness-gauge"><span id="readiness-score">0%</span></div>
+          <div class="gauge readiness" id="readiness-gauge"><span id="readiness-score"></span></div>
           <p>Migration posture</p>
         </article>
       </div>

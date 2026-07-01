@@ -36,6 +36,7 @@ function escapeHTML(value) {
 function showError(message) {
   errorBox.textContent = message;
   errorBox.hidden = false;
+  errorBox.focus();
 }
 
 function clearError() {
@@ -46,6 +47,7 @@ function clearError() {
 function setLoading(isLoading) {
   loading.hidden = !isLoading;
   form.querySelector("button").disabled = isLoading;
+  dropZone.classList.toggle("is-disabled", isLoading);
 
   if (!isLoading) {
     clearInterval(loadingTimer);
@@ -115,9 +117,9 @@ function renderRecommendations(items) {
 }
 
 function renderDownloads(links) {
-  document.querySelector("#download-json").href = links.json;
-  document.querySelector("#download-markdown").href = links.markdown;
-  document.querySelector("#download-html").href = links.html;
+  document.querySelector("#download-json").href = links?.json || "#";
+  document.querySelector("#download-markdown").href = links?.markdown || "#";
+  document.querySelector("#download-html").href = links?.html || "#";
 }
 
 function renderResults(data) {
@@ -137,11 +139,16 @@ function renderResults(data) {
   renderRecommendations(data.recommendations);
   renderDownloads(data.download_links);
   results.hidden = false;
+  requestAnimationFrame(() => results.classList.add("is-visible"));
+  results.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function updateFileLabel() {
   const file = fileInput.files[0];
   fileLabel.textContent = file ? file.name : "Drop a PDF here or choose a file";
+  results.classList.remove("is-visible");
+  results.hidden = true;
+  renderDownloads({});
 }
 
 fileInput.addEventListener("change", updateFileLabel);
@@ -163,6 +170,11 @@ fileInput.addEventListener("change", updateFileLabel);
 dropZone.addEventListener("drop", (event) => {
   const file = event.dataTransfer.files[0];
   if (file) {
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      clearError();
+      showError("Only PDF uploads are supported.");
+      return;
+    }
     fileInput.files = event.dataTransfer.files;
     updateFileLabel();
   }
@@ -187,13 +199,14 @@ form.addEventListener("submit", async (event) => {
   formData.append("file", file);
 
   setLoading(true);
+  results.classList.remove("is-visible");
 
   try {
     const response = await fetch("/analyze", {
       method: "POST",
       body: formData
     });
-    const payload = await response.json();
+    const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
       throw new Error(payload.detail || "Analysis failed.");
@@ -202,6 +215,7 @@ form.addEventListener("submit", async (event) => {
     renderResults(payload);
   } catch (error) {
     results.hidden = true;
+    renderDownloads({});
     showError(error.message);
   } finally {
     setLoading(false);

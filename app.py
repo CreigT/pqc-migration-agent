@@ -34,24 +34,28 @@ async def analyze(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Please upload a PDF file.")
 
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF uploads are supported.")
-
     safe_name = Path(file.filename).name
-    upload_path = UPLOAD_DIR / f"{uuid4().hex}_{safe_name}"
+    if not safe_name.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF uploads are supported.")
 
     contents = await file.read()
     if not contents:
         raise HTTPException(status_code=400, detail="The uploaded file is empty.")
 
+    if not contents.startswith(b"%PDF"):
+        raise HTTPException(status_code=400, detail="The uploaded file does not appear to be a valid PDF.")
+
+    upload_path = UPLOAD_DIR / f"{uuid4().hex}_{safe_name}"
     upload_path.write_bytes(contents)
 
     try:
         result = analyze_pdf(upload_path, REPORT_DIR, document_name=safe_name)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except OSError as exc:
+        raise HTTPException(status_code=422, detail="The PDF could not be read. Please upload a valid, unencrypted PDF.") from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {exc}") from exc
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try another PDF or check the server logs.") from exc
 
     report_paths = result.pop("report_paths")
     latest_reports.clear()
