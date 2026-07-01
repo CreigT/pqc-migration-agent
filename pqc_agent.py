@@ -12,6 +12,12 @@ from pypdf import PdfReader
 
 VULNERABLE_FAMILIES = {"RSA", "ECC", "DSA", "DH"}
 LEGACY_INSECURE = {"MD5", "3DES", "RC4"}
+BRANDING_LINES = [
+    "Sponsored by CREIGNIFICENT LLC",
+    "Terrence (Tc.) Creig",
+    "AI Engineer | Cybersecurity Student | AI Agent Architect | Founder, CREIGNIFICENT LLC",
+    "© 2026 CREIGNIFICENT LLC. All Rights Reserved.",
+]
 
 ALGORITHM_PATTERNS: dict[str, list[str]] = {
     "RSA": [r"\bRSA\b", r"\bRSASSA\b", r"\bRSA[-\s]?PSS\b", r"\bRSA[-\s]?OAEP\b"],
@@ -242,6 +248,13 @@ Critical findings: {result['critical_findings']}
 ## Recommendations
 
 {recommendations}
+
+---
+
+**{BRANDING_LINES[0]}**  
+**{BRANDING_LINES[1]}**  
+**{BRANDING_LINES[2]}**  
+**{BRANDING_LINES[3]}**
 """
 
 
@@ -262,7 +275,7 @@ def render_html_report(result: dict[str, Any]) -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PQC Migration Assessment Report</title>
   <style>
-    body {{ margin: 0; font-family: Arial, sans-serif; color: #eaf7ff; background: #080b18; }}
+    body {{ margin: 0; padding-bottom: 112px; font-family: Arial, sans-serif; color: #eaf7ff; background: #080b18; }}
     main {{ max-width: 1040px; margin: 0 auto; padding: 40px 20px; }}
     h1, h2 {{ color: #78f7ff; }}
     .panel {{ border: 1px solid rgba(120, 247, 255, .24); background: rgba(255,255,255,.06); border-radius: 8px; padding: 22px; margin: 18px 0; box-shadow: 0 0 36px rgba(120, 80, 255, .16); }}
@@ -273,6 +286,12 @@ def render_html_report(result: dict[str, Any]) -> str:
     th, td {{ text-align: left; border-bottom: 1px solid rgba(255,255,255,.12); padding: 12px; vertical-align: top; }}
     th {{ color: #9ffcff; }}
     li {{ margin: 10px 0; }}
+    .brand-footer {{ position: fixed; right: 0; bottom: 0; left: 0; display: grid; gap: 3px; padding: 12px 18px; border-top: 1px solid rgba(120,247,255,.18); background: rgba(5, 7, 17, .94); color: rgba(234,247,255,.78); font-size: 12px; line-height: 1.25; text-align: center; }}
+    .brand-footer strong {{ color: rgba(120,247,255,.92); }}
+    @media print {{
+      body {{ padding-bottom: 120px; background: #080b18 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+      .brand-footer {{ position: fixed; bottom: 0; }}
+    }}
   </style>
 </head>
 <body>
@@ -297,6 +316,12 @@ def render_html_report(result: dict[str, Any]) -> str:
   </section>
   <p>Generated {html.escape(result['timestamp'])}</p>
 </main>
+<footer class="brand-footer">
+  <strong>{html.escape(BRANDING_LINES[0])}</strong>
+  <span>{html.escape(BRANDING_LINES[1])}</span>
+  <span>{html.escape(BRANDING_LINES[2])}</span>
+  <span>{html.escape(BRANDING_LINES[3])}</span>
+</footer>
 </body>
 </html>
 """

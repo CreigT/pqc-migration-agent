@@ -21,6 +21,7 @@
 body {
   min-height: 100vh;
   margin: 0;
+  padding-bottom: 112px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--text);
   background:
@@ -330,6 +331,31 @@ th {
   gap: 12px;
 }
 
+.brand-footer {
+  position: fixed;
+  z-index: 10;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 3px;
+  padding: 12px 18px;
+  border-top: 1px solid rgba(116, 247, 255, 0.18);
+  background: linear-gradient(90deg, rgba(5, 7, 17, 0.92), rgba(12, 18, 38, 0.86), rgba(5, 7, 17, 0.92));
+  box-shadow: 0 -16px 46px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  color: rgba(236, 251, 255, 0.78);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.brand-footer strong {
+  color: rgba(116, 247, 255, 0.9);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -346,5 +372,13 @@ th {
 
   .hero {
     min-height: 220px;
+  }
+
+  body {
+    padding-bottom: 150px;
+  }
+
+  .brand-footer {
+    font-size: 0.72rem;
   }
 }
