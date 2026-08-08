@@ -1,91 +1,83 @@
+from __future__ import annotations
+
+import json
+import tempfile
 from pathlib import Path
-from uuid import uuid4
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
-from pqc_agent import analyze_pdf
+from src.main import AgentOptions, PQCMigrationAgent, SUPPORTED_EXTENSIONS, markdown_summary
 
 
 BASE_DIR = Path(__file__).resolve().parent
-UPLOAD_DIR = BASE_DIR / "uploads"
-REPORT_DIR = BASE_DIR / "reports"
-
-UPLOAD_DIR.mkdir(exist_ok=True)
-REPORT_DIR.mkdir(exist_ok=True)
-
-app = FastAPI(title="PQC Migration Assessment Engine")
-app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
-templates = Jinja2Templates(directory=BASE_DIR / "templates")
+WEB_DIR = BASE_DIR / "web"
+STATIC_DIR = WEB_DIR / "static"
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 
 
-latest_reports: dict[str, Path] = {}
+app = FastAPI(
+    title="PQC Migration Agent",
+    version="1.0.0",
+    description="Analyze PDF, DOCX, and TXT documents for vulnerable cryptography and PQC migration work.",
+)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+@app.get("/")
+def landing_page() -> FileResponse:
+    return FileResponse(WEB_DIR / "index.html")
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok", "service": "pqc-migration-agent"}
 
 
 @app.post("/analyze")
-async def analyze(file: UploadFile = File(...)):
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="Please upload a PDF file.")
+async def analyze_document(file: UploadFile = File(...)) -> JSONResponse:
+    original_name = Path(file.filename or "").name
+    extension = Path(original_name).suffix.lower()
+    if extension not in SUPPORTED_EXTENSIONS:
+        supported = ", ".join(sorted(SUPPORTED_EXTENSIONS))
+        raise HTTPException(status_code=400, detail=f"Unsupported file type. Upload one of: {supported}")
 
-    safe_name = Path(file.filename).name
-    if not safe_name.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF uploads are supported.")
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(content) > MAX_UPLOAD_BYTES:
+        limit_mb = MAX_UPLOAD_BYTES // (1024 * 1024)
+        raise HTTPException(status_code=413, detail=f"File is too large. Maximum upload size is {limit_mb} MB.")
 
-    contents = await file.read()
-    if not contents:
-        raise HTTPException(status_code=400, detail="The uploaded file is empty.")
+    with tempfile.TemporaryDirectory(prefix="pqc-agent-") as temp_dir:
+        temp_path = Path(temp_dir) / original_name
+        temp_path.write_bytes(content)
 
-    if not contents.startswith(b"%PDF"):
-        raise HTTPException(status_code=400, detail="The uploaded file does not appear to be a valid PDF.")
+        agent = PQCMigrationAgent(
+            AgentOptions(
+                context_chars=120,
+                recursive=False,
+                include_clean_documents=True,
+            )
+        )
+        report = agent.run(temp_path)
+        if report["processing"]["documents_failed"]:
+            document = report["documents"][0] if report["documents"] else {}
+            detail = document.get("error", "The document could not be parsed.")
+            raise HTTPException(status_code=422, detail=detail)
 
-    upload_path = UPLOAD_DIR / f"{uuid4().hex}_{safe_name}"
-    upload_path.write_bytes(contents)
-
-    try:
-        result = analyze_pdf(upload_path, REPORT_DIR, document_name=safe_name)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except OSError as exc:
-        raise HTTPException(status_code=422, detail="The PDF could not be read. Please upload a valid, unencrypted PDF.") from exc
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail="Analysis failed. Please try another PDF or check the server logs.") from exc
-
-    report_paths = result.pop("report_paths")
-    latest_reports.clear()
-    latest_reports.update({kind: Path(path) for kind, path in report_paths.items()})
-
-    result["download_links"] = {
-        "json": "/download/json",
-        "markdown": "/download/markdown",
-        "html": "/download/html",
-    }
-    return result
-
-
-def _download_report(kind: str, media_type: str) -> FileResponse:
-    path = latest_reports.get(kind)
-    if not path or not path.exists():
-        raise HTTPException(status_code=404, detail="No report is available yet. Run an analysis first.")
-    return FileResponse(path, media_type=media_type, filename=path.name)
+        markdown = markdown_summary(report)
+        return JSONResponse(
+            {
+                "report": report,
+                "markdown": markdown,
+                "json": json.dumps(report, indent=2, ensure_ascii=False),
+            }
+        )
 
 
-@app.get("/download/json")
-async def download_json():
-    return _download_report("json", "application/json")
+if __name__ == "__main__":
+    import uvicorn
 
-
-@app.get("/download/markdown")
-async def download_markdown():
-    return _download_report("markdown", "text/markdown")
-
-
-@app.get("/download/html")
-async def download_html():
-    return _download_report("html", "text/html")
+    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=False)

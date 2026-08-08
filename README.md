@@ -1,45 +1,138 @@
-# pqc-migration-agent
+# PQC Migration Agent
 
-A simple full-stack Post-Quantum Cryptography migration dashboard. Upload a text-based PDF, run analysis, and download JSON, Markdown, or HTML reports generated from the extracted document text.
+A local Python agent and web interface for post-quantum cryptography migration
+discovery. It scans PDF, DOCX, and TXT files, extracts real document text,
+detects vulnerable or migration-relevant cryptography references, and writes JSON
+and Markdown reports.
 
-## Install and run
+The agent does not use mock data, fake scores, or synthetic findings. Reported
+findings come from parsed document content and explicit detection rules.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app:app --reload
+## Capabilities
+
+- Modern cybersecurity-themed landing page and document analyzer UI
+- Drag-and-drop upload for PDF, DOCX, and TXT documents
+- Parse PDF files with `pdfplumber`
+- Parse Word `.docx` files with `python-docx`
+- Parse text files with built-in Python file handling
+- Detect RSA, DSA, ECC, ECDSA, ECDH, weak Diffie-Hellman, SHA-1, MD5, DES, 3DES, and RC4
+- Detect weak key-size references such as RSA-1024 and RSA-1536
+- Display summary cards, risk levels, locations, evidence excerpts, and detailed findings
+- Download machine-readable JSON reports and Markdown migration summaries
+- Keep the original CLI workflow available for batch or CI use
+
+## Project Structure
+
+```text
+app.py                 FastAPI web application
+requirements.txt      Python dependencies for the web app and analyzer
+src/main.py           Core PQC detection engine and CLI
+web/index.html        Landing page and analyzer interface
+web/static/app.js     Browser-side upload, analysis, and download behavior
+web/static/styles.css Cybersecurity-themed responsive styling
 ```
 
-On macOS or Linux:
+## Install
 
 ```bash
 python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+On macOS or Linux, activate the environment with:
+
+```bash
 source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app:app --reload
 ```
 
-Open http://127.0.0.1:8000 in your browser.
-
-## Command-line use
+## Run the Web App
 
 ```bash
-python pqc_agent.py --input sample.pdf
+python app.py
 ```
 
-Reports are written to `reports/` by default.
+Open:
 
-## How it works
+```text
+http://127.0.0.1:8000
+```
 
-- FastAPI serves the dashboard and accepts PDF uploads at `POST /analyze`.
-- Uploaded PDFs are saved temporarily in `uploads/`.
-- `pqc_agent.py` extracts text with `pypdf`, scans for known cryptographic algorithms, scores quantum migration risk, and writes reports to `reports/`.
-- The frontend starts empty and only renders gauges, tables, recommendations, and download links after real backend analysis succeeds.
+Use the analyzer section to upload a `.pdf`, `.docx`, or `.txt` document. The web
+app sends the file to `/analyze`, runs the existing Python migration agent, and
+returns real JSON and Markdown report content for download.
 
-## Limitations and next improvements
+## API
 
-- Scanned image PDFs are not OCR processed. If no readable text is extracted, the app returns a clear error.
-- Download routes serve the latest report generated during the current server process.
-- This is keyword-based analysis, not a full cryptographic bill-of-materials parser.
-- A future version could add OCR, per-session report IDs, richer context extraction, and certificate or source-code scanning.
+Health check:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Analyze a document:
+
+```bash
+curl -X POST http://127.0.0.1:8000/analyze ^
+  -F "file=@path/to/document.pdf"
+```
+
+The `/analyze` endpoint returns:
+
+- `report`: structured JSON report object
+- `markdown`: Markdown migration summary
+- `json`: formatted JSON report string for direct download
+
+## CLI Usage
+
+Scan one file:
+
+```bash
+python src/main.py path/to/document.pdf --output-dir reports
+```
+
+Scan a directory recursively:
+
+```bash
+python src/main.py path/to/documents --recursive --output-dir reports
+```
+
+Fail when findings are present:
+
+```bash
+python src/main.py path/to/documents --recursive --output-dir reports --fail-on-findings
+```
+
+Print the Markdown summary to stdout:
+
+```bash
+python src/main.py path/to/document.txt --print-summary
+```
+
+## Output
+
+The CLI writes:
+
+- `<target>.pqc_report.json`
+- `<target>.pqc_summary.md`
+
+The web UI provides download buttons for the same report formats.
+
+The JSON report includes:
+
+- Agent metadata
+- Target and processing status
+- Real file SHA-256 hashes
+- File sizes and modified timestamps
+- Parsed block counts
+- Finding counts by risk
+- Per-document findings
+- Evidence excerpts and document locations
+- Recommendations for migration or replacement
+
+## Evidence Policy
+
+This agent reports only findings produced from parsed document text and explicit
+rules. It does not create confidence scores, synthetic assets, fake inventory, or
+mock outputs. Validate findings against source systems, libraries, certificates,
+HSM configuration, and runtime configuration before production remediation.

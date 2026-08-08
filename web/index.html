@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PQC Migration Agent</title>
+    <meta
+      name="description"
+      content="Detect vulnerable cryptography in PDF, DOCX, and TXT documents and generate post-quantum migration reports."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="PQC Migration Agent home">
+          <span class="brand-mark"></span>
+          <span>PQC Migration Agent</span>
+        </a>
+        <nav class="header-nav" aria-label="Primary navigation">
+          <a href="#features">Features</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#analyzer">Analyzer</a>
+          <a href="https://github.com/CreigT/PQC-migration-agent" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+      </header>
+
+      <main id="top">
+        <section class="hero-section">
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <div class="eyebrow">Document intelligence for the post-quantum transition</div>
+              <h1>PQC Migration Agent</h1>
+              <p class="hero-tagline">
+                Detect vulnerable cryptography in PDF, DOCX, and TXT documents, then generate evidence-backed JSON and
+                Markdown reports to guide migration toward post-quantum algorithms.
+              </p>
+              <div class="hero-actions">
+                <a class="primary-button" href="#analyzer">Analyze a document</a>
+                <a class="secondary-button" href="#workflow">See how it works</a>
+              </div>
+              <div class="signal-row" aria-label="Supported capabilities">
+                <span>RSA</span>
+                <span>ECDSA</span>
+                <span>SHA-1</span>
+                <span>MD5</span>
+                <span>DES</span>
+              </div>
+            </div>
+            <div class="hero-panel" aria-label="Live analysis preview">
+              <div class="panel-topline">
+                <span class="status-dot"></span>
+                <span>Evidence-first scan engine</span>
+              </div>
+              <div class="terminal-card">
+                <div class="terminal-line muted">$ python src/main.py architecture.pdf --output-dir reports</div>
+                <div class="terminal-line">Parsed document blocks</div>
+                <div class="terminal-line warning">Detected RSA-1024 certificate reference</div>
+                <div class="terminal-line danger">Detected MD5 checksum workflow</div>
+                <div class="terminal-line success">Generated JSON + Markdown reports</div>
+              </div>
+              <div class="metric-grid">
+                <div>
+                  <span class="metric-value">12</span>
+                  <span class="metric-label">Rules</span>
+                </div>
+                <div>
+                  <span class="metric-value">3</span>
+                  <span class="metric-label">Formats</span>
+                </div>
+                <div>
+                  <span class="metric-value">0</span>
+                  <span class="metric-label">Mock findings</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" class="section">
+          <div class="section-heading">
+            <span class="eyebrow">Capabilities</span>
+            <h2>Built for real migration discovery</h2>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card">
+              <span class="card-kicker">Inputs</span>
+              <h3>PDF, DOCX, and TXT support</h3>
+              <p>Extracts real document text with pdfplumber, python-docx, and native text parsing.</p>
+            </article>
+            <article class="feature-card">
+              <span class="card-kicker">Detection</span>
+              <h3>Cryptography rule engine</h3>
+              <p>Flags RSA, DSA, ECC, ECDSA, ECDH, SHA-1, MD5, DES, 3DES, RC4, and weak key-size references.</p>
+            </article>
+            <article class="feature-card">
+              <span class="card-kicker">Reporting</span>
+              <h3>JSON and Markdown reports</h3>
+              <p>Generates downloadable machine-readable reports and clean executive summaries with recommendations.</p>
+            </article>
+            <article class="feature-card">
+              <span class="card-kicker">Evidence</span>
+              <h3>Risk classification with locations</h3>
+              <p>Shows risk levels, document locations, matched terms, and excerpts without synthetic scoring.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="workflow" class="section workflow-section">
+          <div class="section-heading">
+            <span class="eyebrow">Workflow</span>
+            <h2>From document upload to migration plan</h2>
+          </div>
+          <div class="workflow-grid">
+            <div class="workflow-step">
+              <span class="step-number">01</span>
+              <h3>Upload evidence</h3>
+              <p>Drop a PDF, DOCX, or TXT file into the analyzer.</p>
+            </div>
+            <div class="workflow-step">
+              <span class="step-number">02</span>
+              <h3>Parse content</h3>
+              <p>The Python engine extracts real text and file metadata.</p>
+            </div>
+            <div class="workflow-step">
+              <span class="step-number">03</span>
+              <h3>Detect crypto</h3>
+              <p>Rules identify vulnerable classical cryptography and PQC migration targets.</p>
+            </div>
+            <div class="workflow-step">
+              <span class="step-number">04</span>
+              <h3>Export reports</h3>
+              <p>Download JSON and Markdown outputs for remediation tracking.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="analyzer" class="section analyzer-section">
+          <div class="section-heading">
+            <span class="eyebrow">Analyzer</span>
+            <h2>Run the migration agent</h2>
+          </div>
+          <div class="analyzer-layout">
+            <div class="upload-card">
+              <form id="uploadForm" class="upload-zone">
+                <input id="fileInput" type="file" accept=".pdf,.docx,.txt" />
+                <div class="upload-icon" aria-hidden="true"></div>
+                <h3>Drop a document here</h3>
+                <p>or choose a PDF, DOCX, or TXT file up to 25 MB.</p>
+                <button class="primary-button" type="button" id="chooseFileButton">Choose file</button>
+                <div id="selectedFile" class="selected-file">No file selected</div>
+              </form>
+              <button id="analyzeButton" class="analyze-button" type="button" disabled>Analyze document</button>
+              <div id="statusMessage" class="status-message" role="status"></div>
+            </div>
+
+            <div class="results-panel" id="resultsPanel" hidden>
+              <div class="results-header">
+                <div>
+                  <span class="eyebrow">Results</span>
+                  <h3 id="resultFileName">Document analysis</h3>
+                </div>
+                <div class="download-actions">
+                  <button id="downloadJson" class="secondary-button" type="button">Download JSON</button>
+                  <button id="downloadMarkdown" class="secondary-button" type="button">Download Markdown</button>
+                </div>
+              </div>
+
+              <div class="summary-grid" id="summaryGrid"></div>
+
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Algorithm</th>
+                      <th>Risk</th>
+                      <th>Location</th>
+                      <th>Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody id="findingsBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>PQC Migration Agent. Evidence-based crypto migration discovery.</span>
+        <a href="https://github.com/CreigT/PQC-migration-agent" target="_blank" rel="noreferrer">View on GitHub</a>
+      </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
