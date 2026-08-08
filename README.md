@@ -62,6 +62,29 @@ Use the analyzer section to upload a `.pdf`, `.docx`, or `.txt` document. The we
 app sends the file to `/analyze`, runs the existing Python migration agent, and
 returns real JSON and Markdown report content for download.
 
+## Deploy to Vercel
+
+This repository includes `vercel.json` for the FastAPI entrypoint:
+
+```text
+app.py
+```
+
+Vercel will install `requirements.txt` and route traffic to the Python function.
+Connect the public GitHub repository to Vercel, keep the project root set to the
+repository root, and deploy the `main` branch.
+
+Hosted uploads are capped at 4 MB because Vercel Functions enforce request body
+limits. For larger document inventories, run the CLI locally or split documents
+before uploading them through the hosted analyzer.
+
+You can also deploy from the command line:
+
+```bash
+npm install -g vercel
+vercel --prod
+```
+
 ## API
 
 Health check:
@@ -81,7 +104,6 @@ The `/analyze` endpoint returns:
 
 - `report`: structured JSON report object
 - `markdown`: Markdown migration summary
-- `json`: formatted JSON report string for direct download
 
 ## CLI Usage
 

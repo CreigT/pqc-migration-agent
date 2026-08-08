@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import tempfile
 from pathlib import Path
 
@@ -14,7 +13,9 @@ from src.main import AgentOptions, PQCMigrationAgent, SUPPORTED_EXTENSIONS, mark
 BASE_DIR = Path(__file__).resolve().parent
 WEB_DIR = BASE_DIR / "web"
 STATIC_DIR = WEB_DIR / "static"
-MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+# Vercel Functions reject request bodies above 4.5 MB. Keep this below that
+# limit so users get a clear application error instead of a platform failure.
+MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 
 
 app = FastAPI(
@@ -48,7 +49,10 @@ async def analyze_document(file: UploadFile = File(...)) -> JSONResponse:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
     if len(content) > MAX_UPLOAD_BYTES:
         limit_mb = MAX_UPLOAD_BYTES // (1024 * 1024)
-        raise HTTPException(status_code=413, detail=f"File is too large. Maximum upload size is {limit_mb} MB.")
+        raise HTTPException(
+            status_code=413,
+            detail=f"File is too large for the hosted analyzer. Maximum upload size is {limit_mb} MB.",
+        )
 
     with tempfile.TemporaryDirectory(prefix="pqc-agent-") as temp_dir:
         temp_path = Path(temp_dir) / original_name
@@ -72,7 +76,6 @@ async def analyze_document(file: UploadFile = File(...)) -> JSONResponse:
             {
                 "report": report,
                 "markdown": markdown,
-                "json": json.dumps(report, indent=2, ensure_ascii=False),
             }
         )
 

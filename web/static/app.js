@@ -82,7 +82,7 @@ function renderResults(payload) {
   const findings = documentReport ? documentReport.findings : [];
   const counts = summary.risk_counts || {};
 
-  latestJson = payload.json;
+  latestJson = JSON.stringify(report, null, 2);
   latestMarkdown = payload.markdown;
   resultFileName.textContent = documentReport?.input?.file_name || activeFile?.name || "Document analysis";
 
